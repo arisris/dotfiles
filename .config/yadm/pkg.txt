@@ -1,0 +1,73 @@
+# --- GUI Core ---
+xorg-server
+xorg-xinit
+lightdm
+lightdm-gtk-greeter
+lightdm-gtk-greeter-settings
+i3-wm
+i3status
+i3lock
+xss-lock
+rofi
+dunst
+picom
+feh
+lxappearance
+papirus-icon-theme
+
+# --- File Manager & Utils ---
+pcmanfm
+xarchiver
+gvfs
+gvfs-mtp
+gnome-disk-utility
+xdg-user-dirs
+maim
+xclip
+
+# --- Network ---
+networkmanager
+network-manager-applet
+
+# --- Media ---
+pipewire
+pipewire-alsa
+pipewire-pulse
+wireplumber
+mpv
+mpv-mpris
+playerctl
+yt-dlp
+ffmpeg
+
+# --- Fonts ---
+adwaita-fonts
+noto-fonts
+noto-fonts-emoji
+ttf-noto-nerd
+
+# --- Dev & Terminal ---
+kitty
+code
+micro
+fastfetch
+ripgrep
+btop
+curl
+wget
+unzip
+7zip
+lua
+lua-lgi
+polkit-gnome
+
+# --- Virtualization ---
+libvirt
+dnsmasq
+iptables-nft
+qemu-desktop
+virt-manager
+podman
+netavark
+aardvark-dns
+distrobox

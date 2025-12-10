@@ -1,8 +1,158 @@
-#!/usr/bin/bash
+#!/bin/bash
 
-PKGS="
-  i3-wm
-  mpv
-  playerctl
-"
-echo "Hello Yadm Bootstrap"
+# ==============================================================================
+# YADM BOOTSTRAP: REPLICA MODE (Modular Version)
+# ==============================================================================
+
+# Output Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Helper Functions
+log() { echo -e "${BLUE}[BOOTSTRAP]${NC} $1"; }
+success() { echo -e "${GREEN}[OK]${NC} $1"; }
+warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PKG_FILE="$SCRIPT_DIR/pkg.txt"
+AUR_FILE="$SCRIPT_DIR/pkg-aur.txt"
+
+# 1. Validation
+if [ ! -f /etc/arch-release ]; then
+    error "Not Arch Linux. Aborting."
+    exit 1
+fi
+
+# Request sudo access upfront
+log "Requesting sudo access..."
+sudo -v
+while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+
+# ------------------------------------------------------------------------------
+# 2. System Sync (INTERACTIVE)
+# ------------------------------------------------------------------------------
+log "Checking system update preferences..."
+
+echo -e "${YELLOW}[QUESTION]${NC} Do you want to force refresh package databases (-Syu)? [y/N]"
+read -r -p "Select (default No): " response
+
+if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    log "Downloading databases and updating system (-Syu)..."
+    sudo pacman -Syu
+else
+    warn "Skipping database download (-y). Performing local update only (-Su)..."
+    sudo pacman -Su
+fi
+
+log "Installing Base Dev Tools..."
+sudo pacman -S --needed --noconfirm git base-devel linux-lts-headers
+
+# ------------------------------------------------------------------------------
+# 3. Install AUR Helper (yay-bin)
+# ------------------------------------------------------------------------------
+if ! command -v yay &> /dev/null; then
+    log "Installing yay-bin..."
+    cd /tmp
+    git clone https://aur.archlinux.org/yay-bin.git
+    cd yay-bin
+    makepkg -si --noconfirm
+    cd ~
+    rm -rf /tmp/yay-bin
+    success "yay installed!"
+else
+    success "yay is already installed."
+fi
+
+# ------------------------------------------------------------------------------
+# 4. LOAD & INSTALL PACKAGES
+# ------------------------------------------------------------------------------
+
+# Function to read package list (ignores comments # and empty lines)
+read_packages() {
+    if [ -f "$1" ]; then
+        grep -vE '^\s*#|^\s*$' "$1"
+    else
+        error "File not found: $1"
+        exit 1
+    fi
+}
+
+log "Reading package lists..."
+
+# Read Official Packages
+if [ -f "$PKG_FILE" ]; then
+    # Create array from file content
+    mapfile -t OFFICIAL_LIST < <(read_packages "$PKG_FILE")
+    log "Installing Official Packages from pkg.txt..."
+    sudo pacman -S --needed --noconfirm "${OFFICIAL_LIST[@]}"
+else
+    error "pkg.txt not found in $SCRIPT_DIR"
+fi
+
+# Read AUR Packages
+if [ -f "$AUR_FILE" ]; then
+    mapfile -t AUR_LIST < <(read_packages "$AUR_FILE")
+    log "Installing AUR Packages from pkg-aur.txt..."
+    yay -S --needed --noconfirm --removemake "${AUR_LIST[@]}"
+else
+    warn "pkg-aur.txt not found. Skipping AUR installation."
+fi
+
+# ------------------------------------------------------------------------------
+# 5. CONFIG & SERVICES
+# ------------------------------------------------------------------------------
+log "Configuring System Services..."
+
+log "Creating user directories..."
+xdg-user-dirs-update
+
+sudo systemctl enable --now NetworkManager
+sudo systemctl enable lightdm
+sudo systemctl enable --now libvirtd
+sudo usermod -aG libvirt $USER
+systemctl --user enable --now podman.socket
+
+# ------------------------------------------------------------------------------
+# 6. RESTORE DOTFILES & FIX PERMISSIONS
+# ------------------------------------------------------------------------------
+if [ -f "$HOME/.local/share/yadm/archive" ]; then
+    log "Decrypting secret files..."
+    yadm decrypt
+    
+    log "Fixing SSH permissions..."
+    chmod 700 "$HOME/.ssh" 2>/dev/null
+    chmod 600 "$HOME/.ssh/id_*" 2>/dev/null
+    chmod 644 "$HOME/.ssh/*.pub" 2>/dev/null
+    chmod 644 "$HOME/.ssh/known_hosts" 2>/dev/null
+    chmod 644 "$HOME/.ssh/config" 2>/dev/null
+fi
+
+# Fix Custom Scripts Executable Permissions
+if [ -d "$HOME/.local/bin" ]; then
+    log "Fixing executable permissions in ~/.local/bin..."
+    chmod +x "$HOME/.local/bin/"* 2>/dev/null
+    success "Scripts in ~/.local/bin made executable."
+fi
+
+# ------------------------------------------------------------------------------
+# 7. FONT CACHE (INTERACTIVE)
+# ------------------------------------------------------------------------------
+echo -e "${YELLOW}[QUESTION]${NC} Update font cache (fc-cache -fv)? [y/N]"
+read -r -p "Select (default No): " font_resp
+
+if [[ "$font_resp" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    log "Updating font cache..."
+    fc-cache -fv
+else
+    log "Skipping font cache update."
+fi
+
+# ------------------------------------------------------------------------------
+# 8. FINISH
+# ------------------------------------------------------------------------------
+success "🎉 REPLICA COMPLETE! Reboot now to enjoy your fully restored system."
