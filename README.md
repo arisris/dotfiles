@@ -24,9 +24,7 @@ A comprehensive, replica-ready configuration for Arch Linux using **i3-wm** and 
 4.  **Run the Bootstrap Script**:
     This script will install all packages, enable services, and fix permissions.
     ```bash
-    ~/.local/share/yadm/bootstrap
-    # Or if you are in the home directory:
-    ./bootstrap
+    yadm bootstrap
     ```
 
 ## 📦 Package Management
