@@ -43,7 +43,7 @@
 			"cast-local-type",
 			"need-check-nil"
 		],
-		"terminal.integrated.cwd": "/home/arisris",
+		"terminal.integrated.cwd": "../../",
 		"[lua]": {
 			"editor.quickSuggestions": {
 				"comments": "inline",

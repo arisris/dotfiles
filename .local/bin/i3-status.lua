@@ -209,7 +209,7 @@ while true do
     io.write(cache.music_json .. ",")
     io.write(cache.vol_json .. ",")
     io.write(string.format('{"full_text":" %s", "name":"datetime", "separator":true, "separator_block_width":20},', cache.date))
-    io.write('{"full_text":"<span color=\'#FFB86C\' size=\'x-large\'></span>", "name":"power_menu", "markup":"pango", "separator":false}')
+    io.write('{"full_text":"<span color=\'#FFFFFF\' size=\'x-large\'></span>", "name":"power_menu", "markup":"pango", "separator":false}')
     io.write("],\n")
     io.flush()
 

@@ -1,3 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
+PKGS="
+  i3-wm
+  mpv
+  playerctl
+"
 echo "Hello Yadm Bootstrap"
