@@ -1,0 +1,67 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": ".config/yadm"
+		},
+		{
+			"path": "../i3",
+			"name": ".config/i3"
+		},
+		{
+			"path": "../picom",
+			"name": ".config/picom"
+		},
+		{
+			"path": "../rofi",
+			"name": ".config/rofi"
+		},
+		{
+			"path": "../dunst",
+			"name": ".config/dunst"
+		},
+		{
+			"path": "../kitty",
+			"name": ".config/kitty"
+		},
+		{
+			"path": "../i3status",
+			"name": ".config/i3status"
+		},
+		{
+			"path": "../../.local/bin",
+			"name": ".local/bin"
+		},
+		{
+			"path": "../../.local/share/lua",
+			"name": ".local/share/lua"
+		}
+	],
+	"settings": {
+		"Lua.format.enable": true,
+		"Lua.diagnostics.disable": [
+			"cast-local-type",
+			"need-check-nil"
+		],
+		"terminal.integrated.cwd": "/home/arisris",
+		"[lua]": {
+			"editor.quickSuggestions": {
+				"comments": "inline",
+				"other": "on",
+				"strings": "on"
+			},
+			"editor.semanticHighlighting.enabled": true,
+			"editor.defaultFormatter": "sumneko.lua"
+		},
+		"files.associations": {
+			"*.rasi": "scss"
+		},
+		"scss.validate": false,
+		"scss.lint.unknownProperties": "ignore"
+	},
+	"extensions": {
+		"recommendations": [
+			"sumneko.lua"
+		]
+	}
+}
