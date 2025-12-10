@@ -1,0 +1,82 @@
+[global]
+    ### Tampilan & Font ###
+    font = NotoSans Nerd Font 10
+    markup = yes
+    format = "<b>%s</b>\n%b"
+    sort = yes
+    indicate_hidden = yes
+    alignment = left
+    show_age_threshold = 60
+    word_wrap = yes
+    ignore_newline = no
+    stack_duplicates = true
+    hide_duplicate_count = false
+
+    ### Geometri & Posisi ###
+    # Ukuran dinamis (min 300px, max 500px), tinggi menyesuaikan konten
+    geometry = "300x50-20+50"
+    # Posisi: Kanan Atas (-20 dari kanan, +50 dari atas biar gak nutup polybar/i3bar)
+    shrink = no
+    transparency = 0
+    idle_threshold = 120
+    monitor = 0
+    follow = mouse
+    sticky_history = yes
+    line_height = 0
+    
+    ### Margin & Padding ###
+    separator_height = 2
+    padding = 10
+    horizontal_padding = 12
+    text_icon_padding = 10
+    frame_width = 1
+    separator_color = frame
+
+    ### Dekorasi (Rounded Corners ala Adwaita) ###
+    corner_radius = 8
+
+    ### Icon ###
+    icon_position = left
+    min_icon_size = 32
+    max_icon_size = 64
+    # Pastikan kamu punya icon theme ini atau ganti ke "Papirus-Dark"
+    icon_theme = "Adwaita" 
+    enable_recursive_icon_lookup = true
+
+    ### Mouse Interaction ###
+    dmenu = /usr/bin/rofi -dmenu -p dunst:
+    browser = /usr/bin/xdg-open
+    mouse_left_click = close_current
+    mouse_middle_click = do_action, close_current
+    mouse_right_click = close_all
+
+# --- WARNA TEMA ADWAITA DARK ---
+
+[urgency_low]
+    # Teks agak redup untuk info kurang penting
+    background = "#2D303B"
+    foreground = "#77767B"
+    frame_color = "#2D303B"
+    timeout = 10
+
+[urgency_normal]
+    # Standar Adwaita Dark (Sama kayak Rofi)
+    background = "#2D303B"
+    foreground = "#C4CBD4"
+    frame_color = "#7C8389"
+    timeout = 10
+
+[urgency_critical]
+    # Merah Adwaita untuk error/critical
+    background = "#2D303B"
+    foreground = "#FFFFFF"
+    frame_color = "#ED333B"
+    timeout = 0
+
+# --- Progress Bar (Volume/Brightness) ---
+# Menggunakan warna biru Adwaita (#3584E4)
+# Biar kelihatan modern
+[progress_bar]
+    foreground = "#3584E4"
+    background = "#2D303B"
+    frame_color = "#3584E4"

@@ -1,0 +1,190 @@
+/*******************************************************************************
+ * ROFI Color theme:              Adwaita Dark Solid (Hex Version)
+ * User:                          Arisris (Modified)
+ *******************************************************************************/
+
+* {
+  /* Warna Teks */
+  foreground:                     #C4CBD4;
+  normal-foreground:              @foreground;
+  selected-normal-foreground:     #F9F9F9;
+  alternate-normal-foreground:    @foreground;
+  
+  /* Background Utama (Solid #2D303B) */
+  background:                     #2D303B;
+  normal-background:              @background;
+  /* Disamakan dengan background agar tampilan list rata/solid */
+  alternate-normal-background:    #2D303B;
+  
+  /* Warna Seleksi */
+  selected-normal-background:     #4084D6;
+  
+  /* Warna Urgent */
+  urgent-foreground:              #CC6666;
+  urgent-background:              #1D1F21;
+  selected-urgent-foreground:     #F9F9F9;
+  selected-urgent-background:     #A54242;
+  alternate-urgent-foreground:    @urgent-foreground;
+  alternate-urgent-background:    #4B5160;
+  
+  /* Warna Active */
+  active-foreground:              #65ACFF;
+  active-background:              #1D1F21;
+  selected-active-foreground:     #F9F9F9;
+  selected-active-background:     #4491ED;
+  alternate-active-foreground:    @active-foreground;
+  alternate-active-background:    #4B5160;
+
+  /* Warna Lainnya */
+  red:                            #DC322F;
+  blue:                           #268BD2;
+  lightbg:                        #EEE8D5;
+  lightfg:                        #586875;
+  
+  /* Border & Separator */
+  border-color:                   #7C8389;
+  separatorcolor:                 #1D1F21;
+  spacing:                        2;
+
+  /* Background transparan untuk elemen internal (8-digit hex) */
+  background-color:               #00000000;
+}
+
+window {
+  background-color:               @background;
+  border:                         1;
+  padding:                        5;
+  width:                          600;
+  font:                           "NotoSans Nerd Font 10";
+  border-radius:                  8px;
+}
+
+mainbox {
+  border:                         0;
+  padding:                        8px;
+}
+
+message {
+  border:                         1px solid 0px 0px;
+  border-color:                   @separatorcolor;
+  padding:                        8px;
+}
+
+textbox {
+  text-color:                     @foreground;
+}
+
+listview {
+  border:                         0;
+  spacing:                        0;
+  scrollbar:                      false;
+  lines:                          10;
+  padding:                        8px 0px 0px 0px;
+}
+
+element {
+  border:                         0;
+  padding:                        8px;
+}
+
+element-text {
+  background-color:               inherit;
+  text-color:                     inherit;
+}
+
+element normal.normal {
+  background-color:               @normal-background;
+  text-color:                     @normal-foreground;
+}
+
+element.normal.urgent {
+  background-color:               @urgent-background;
+  text-color:                     @urgent-foreground;
+}
+
+element.normal.active {
+  background-color:               @active-background;
+  text-color:                     @active-foreground;
+}
+
+element.selected.normal {
+  background-color:               @selected-normal-background;
+  text-color:                     @selected-normal-foreground;
+}
+
+element.selected.urgent {
+  background-color:               @selected-urgent-background;
+  text-color:                     @selected-urgent-foreground;
+}
+
+element.selected.active {
+  background-color:               @selected-active-background;
+  text-color:                     @selected-active-foreground;
+}
+
+element.alternate.normal {
+  background-color:               @alternate-normal-background;
+  text-color:                     @alternate-normal-foreground;
+}
+
+element.alternate.urgent {
+  background-color:               @alternate-urgent-background;
+  text-color:                     @alternate-urgent-foreground;
+}
+
+element.alternate.active {
+  background-color:               @alternate-active-background;
+  text-color:                     @alternate-active-foreground;
+}
+
+scrollbar {
+  width:                          0px;
+  border:                         0;
+  handle-width:                   8px;
+  padding:                        0;
+}
+
+mode-switcher {
+  border:                         2px solid 0px 0px;
+  border-color:                   @separatorcolor;
+}
+
+button.selected {
+  background-color:               @selected-normal-background;
+  text-color:                     @selected-normal-foreground;
+}
+
+inputbar {
+  spacing:                        0;
+  text-color:                     @normal-foreground;
+  padding:                        8px;
+  border:                         1px;
+  border-radius:                  8px;
+  border-color:                   @normal-foreground;
+}
+
+case-indicator {
+  spacing:                        0;
+  text-color:                     @normal-foreground;
+}
+
+entry {
+  spacing:                        0;
+  text-color:                     @normal-foreground;
+}
+
+prompt {
+  spacing:                        0;
+  text-color:                     @normal-foreground;
+}
+
+inputbar {
+  children:                       [ prompt, textbox-prompt-colon, entry, case-indicator];
+}
+
+textbox-prompt-colon {
+  expand:                         false;
+  str:                            " ~ ";
+  margin:                         0px 0.3em 0em 0em;
+  text-color:                     @normal-foreground;
+}
