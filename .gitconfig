@@ -1,2 +1,5 @@
 [init]
 	defaultBranch = master
+[user]
+	email = me@arisris.com
+	name = arisris
