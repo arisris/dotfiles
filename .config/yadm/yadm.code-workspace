@@ -38,6 +38,7 @@
 		}
 	],
 	"settings": {
+		"editor.wordWrap": "on",
 		"Lua.format.enable": true,
 		"Lua.diagnostics.disable": [
 			"cast-local-type",
