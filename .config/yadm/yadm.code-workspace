@@ -35,6 +35,9 @@
 		{
 			"path": "../../.local/share/lua",
 			"name": ".local/share/lua"
+		},
+		{
+			"path": "../../.local/share/applications"
 		}
 	],
 	"settings": {
