@@ -47,7 +47,7 @@ noto-fonts-emoji
 ttf-noto-nerd
 
 # --- Dev & Terminal ---
-kitty
+alacritty
 code
 micro
 fastfetch
