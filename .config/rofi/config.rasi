@@ -2,6 +2,9 @@
  * ROFI Color theme:              Adwaita Dark Solid (Hex Version)
  * User:                          Arisris (Modified)
  *******************************************************************************/
+configuration {
+  /** terminal: "kitty --single-instance --instance-group main"; */
+}
 
 * {
   /* Warna Teks */

@@ -21,8 +21,8 @@
 			"name": ".config/dunst"
 		},
 		{
-			"path": "../kitty",
-			"name": ".config/kitty"
+			"path": "../alacritty",
+			"name": ".config/alacritty"
 		},
 		{
 			"path": "../i3status",
@@ -37,7 +37,8 @@
 			"name": ".local/share/lua"
 		},
 		{
-			"path": "../../.local/share/applications"
+			"path": "../../.local/share/applications",
+			"name": ".local/share/applications"
 		}
 	],
 	"settings": {
@@ -47,6 +48,8 @@
 			"cast-local-type",
 			"need-check-nil"
 		],
+		"Lua.workspace.library": ["/usr/share/lua/5.4"],
+		"Lua.runtime.version": "Lua 5.4",
 		"terminal.integrated.cwd": "../../",
 		"[lua]": {
 			"editor.quickSuggestions": {

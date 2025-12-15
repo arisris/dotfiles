@@ -42,7 +42,7 @@ for_window [window_type="^(dialog|menu)$"] floating enable
 # apps
 for_window [class="Ytse"] floating enable, resize 500 700
 for_window [class="^(Lxappearance|Nm-connection-editor|Electron|Lightdm-gtk-greeter-settings|Gnome-disks|Xarchiver)$"] floating enable, resize set 800 480, move position center
-for_window [class="^(kitty|Pcmanfm|Virt-manager)$"] floating enable, resize set 800 480
+for_window [class="^(Alacritty|kitty|Pcmanfm|Virt-manager)$"] floating enable, resize set 800 480
 
 # Android Studio & JetBrains IDEs Configuration
 for_window [class="^jetbrains-.*" title="Welcome to Android Studio"] floating enable, resize set 800 480, move position center
@@ -55,7 +55,7 @@ bindsym $mod+t border toggle
 # --- Startup & System ---
 set $screen_locker i3lock -c '#2D2D2D' --nofork --ignore-empty-password --show-failed-attempts
 exec --no-startup-id picom -b
-exec --no-startup-id dunst
+# exec --no-startup-id dunst
 exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 exec --no-startup-id dex --autostart --environment i3
 # exec --no-startup-id xset s 600 dpms 600 600 600
