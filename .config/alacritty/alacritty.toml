@@ -1,5 +1,5 @@
-[scrolling]
-history = 2000
+#[scrolling]
+#history = 2000
 
 [font]
 normal.family = "NotoSansM Nerd Font"
@@ -15,3 +15,32 @@ blur = true
 [cursor]
 style = { blinking = "On" }
 blink_interval = 500
+
+[colors.primary]
+background = "#1d1d1d"
+foreground = "#dedede"
+
+[colors.normal]
+black   = "#1d1d1d"
+red     = "#ed333b"
+green   = "#57e389"
+yellow  = "#ff7800"
+blue    = "#62a0ea"
+magenta = "#9141ac"
+cyan    = "#5bc8af"
+white   = "#dedede"
+
+[colors.bright]
+black   = "#5e5c64"
+red     = "#f66151"
+green   = "#8ff0a4"
+yellow  = "#ffa348"
+blue    = "#99c1f1"
+magenta = "#dc8add"
+cyan    = "#93ddc9"
+white   = "#f6f5f4"
+
+[[keyboard.bindings]]
+key = "K"
+mods = "Control|Shift"
+action = "ClearHistory"
