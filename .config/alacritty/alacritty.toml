@@ -1,0 +1,17 @@
+[scrolling]
+history = 2000
+
+[font]
+normal.family = "NotoSansM Nerd Font"
+size = 10
+
+[window]
+decorations = "Buttonless"
+padding = { x = 8, y = 4 }
+dynamic_padding = true
+opacity = 0.85
+blur = true
+
+[cursor]
+style = { blinking = "On" }
+blink_interval = 500
