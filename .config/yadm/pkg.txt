@@ -38,6 +38,7 @@ mpv
 mpv-mpris
 playerctl
 yt-dlp
+yt-dlp-ejs
 ffmpeg
 
 # --- Fonts ---
@@ -49,6 +50,7 @@ ttf-noto-nerd
 # --- Dev & Terminal ---
 alacritty
 code
+fzf
 micro
 fastfetch
 ripgrep
