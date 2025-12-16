@@ -3,7 +3,7 @@
  * User:                          Arisris (Modified)
  *******************************************************************************/
 configuration {
-  /** terminal: "kitty --single-instance --instance-group main"; */
+  // terminal: "";
 }
 
 * {

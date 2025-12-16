@@ -57,9 +57,6 @@ curl
 wget
 unzip
 7zip
-lua
-lua-posix
-lua-lgi
 polkit-gnome
 
 # --- Virtualization ---

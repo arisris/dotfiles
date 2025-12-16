@@ -44,3 +44,13 @@ white   = "#f6f5f4"
 key = "K"
 mods = "Control|Shift"
 action = "ClearHistory"
+
+[[keyboard.bindings]]
+key = "Up"
+mods = "Shift"
+action = "ScrollLineUp"
+
+[[keyboard.bindings]]
+key = "Down"
+mods = "Shift"
+action = "ScrollLineDown"

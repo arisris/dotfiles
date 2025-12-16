@@ -1,0 +1,198 @@
+#!/bin/bash
+
+# --- Dependencies ---
+if ! command -v yt-dlp &> /dev/null || ! command -v fzf &> /dev/null; then
+  echo "Error: yt-dlp and fzf are required."
+  exit 1
+fi
+
+# --- Defaults ---
+LIMIT=20
+PROVIDER="ytsearch"
+NAME="YouTube"
+MODE="search"  # search | direct
+OUTPUT_DIR="$HOME/Downloads/yt-dlp" # Default Download Path
+
+# --- Argument Parsing ---
+POSITIONAL_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -l|--limit)
+      LIMIT="$2"
+      shift 2
+      ;;
+    -p|--provider)
+      case "$2" in
+        sc|soundcloud) 
+            PROVIDER="scsearch"; NAME="SoundCloud"; MODE="search" ;;
+        ytm|music)     
+            PROVIDER="ytsearch"; NAME="YouTube Music"; MODE="search" ;;
+        yt|youtube)    
+            PROVIDER="ytsearch"; NAME="YouTube"; MODE="search" ;;
+        url|link|direct)
+            MODE="direct" ;;
+        *) 
+            echo "Warning: Unknown provider. Using YouTube." 
+            PROVIDER="ytsearch"; NAME="YouTube" ;;
+      esac
+      shift 2
+      ;;
+    -o|--output)
+      OUTPUT_DIR="$2"
+      shift 2
+      ;;
+    --clear-cache)
+      rm -rf "$HOME/.cache/yt-dlp/search-cache"
+      echo "Cache cleared."
+      exit 0
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1")
+      shift 1
+      ;;
+  esac
+done
+
+QUERY="${POSITIONAL_ARGS[*]}"
+
+# --- Setup Output Directory ---
+# Expand ~ if passed in argument (bash doesn't always do it automatically for vars)
+OUTPUT_DIR="${OUTPUT_DIR/#\~/$HOME}"
+mkdir -p "$OUTPUT_DIR"
+
+# --- Cache Setup ---
+CACHE_DIR="$HOME/.cache/yt-dlp/search-cache"
+mkdir -p "$CACHE_DIR"
+
+# --- Function: Get Results ---
+get_search_results() {
+    local query="$1"
+    local provider="$2"
+    local limit="$3"
+
+    if command -v md5sum &> /dev/null; then
+        HASH=$(echo "${provider}_${limit}_${query}" | md5sum | awk '{print $1}')
+    else
+        HASH=$(echo "${provider}_${limit}_${query}" | md5)
+    fi
+    local cache_file="$CACHE_DIR/${HASH}.txt"
+
+    if [ -f "$cache_file" ] && [ -n "$(find "$cache_file" -mmin -1440 2>/dev/null)" ]; then
+        cat "$cache_file"
+        return
+    fi
+
+    echo "Fetching fresh data from $NAME..." >&2
+    local result=""
+    if [[ "$NAME" == "YouTube" || "$NAME" == "YouTube Music" ]]; then
+        result=$(yt-dlp --flat-playlist \
+          --print "%(title)s [%(duration_string)s]"$'\t'"%(id)s" \
+          "${provider}${limit}:${query}" 2>/dev/null)
+    else
+        result=$(yt-dlp --flat-playlist \
+          --print "%(title)s [%(duration_string)s]"$'\t'"%(url)s" \
+          "${provider}${limit}:${query}" 2>/dev/null)
+    fi
+
+    if [ -n "$result" ]; then
+        echo "$result" > "$cache_file"
+        echo "$result"
+    fi
+}
+
+# --- Step 1: Input & Data Fetch ---
+if [[ "$MODE" == "direct" ]]; then
+    if [ -z "$QUERY" ]; then read -p "Paste URL: " URL; else URL="$QUERY"; fi
+    [ -z "$URL" ] && exit 1
+    NAME="Direct Link"
+    if [[ "$URL" == *"soundcloud.com"* ]]; then NAME="SoundCloud"; fi
+else
+    if [ -z "$QUERY" ]; then read -p "Search $NAME: " QUERY; fi
+    [ -z "$QUERY" ] && exit 1
+    
+    SEARCH_CACHE=$(get_search_results "$QUERY" "$PROVIDER" "$LIMIT")
+    if [ -z "$SEARCH_CACHE" ]; then echo "No results found."; exit 0; fi
+fi
+
+# --- Step 2: Interaction Loop ---
+while true; do
+    
+    URLS_TO_DOWNLOAD=()
+
+    # --- A. Multi-Select Videos ---
+    if [[ "$MODE" == "direct" ]]; then
+        URLS_TO_DOWNLOAD+=("$URL")
+    else
+        SELECTED=$(echo "$SEARCH_CACHE" | fzf -m --header="Select Content ($NAME) - TAB to Multi-select - ESC to Exit" --delimiter=$'\t' --with-nth=1)
+        
+        if [ -z "$SELECTED" ]; then echo "Exiting."; exit 0; fi
+
+        while IFS= read -r line; do
+            RAW_DATA=$(echo "$line" | awk -F '\t' '{print $2}')
+            if [[ "$NAME" == "YouTube Music" ]]; then 
+                URLS_TO_DOWNLOAD+=("https://music.youtube.com/watch?v=$RAW_DATA")
+            elif [[ "$NAME" == "YouTube" ]]; then
+                URLS_TO_DOWNLOAD+=("https://www.youtube.com/watch?v=$RAW_DATA")
+            else
+                URLS_TO_DOWNLOAD+=("$RAW_DATA")
+            fi
+        done <<< "$SELECTED"
+    fi
+
+    # --- B. Select Format ---
+    OPTS_AUDIO=(
+      "Audio - Best Quality (FLAC/WAV) :: -x --audio-format flac"
+      "Audio - MP3 (320k) :: -x --audio-format mp3 --audio-quality 0"
+      "Audio - MP3 (192k) :: -x --audio-format mp3 --audio-quality 192K"
+      "Audio - M4A (AAC) :: -x --audio-format m4a"
+    )
+    OPTS_VIDEO=(
+      "Video - Best Quality :: -f \"bv+ba/b\""
+      "Video - 1080p (MP4) :: -f \"bv*[height=1080]+ba/b[height=1080]\" --merge-output-format mp4"
+      "Video - 720p (MP4) :: -f \"bv*[height=720]+ba/b[height=720]\" --merge-output-format mp4"
+      "Video - 480p (Data Saver) :: -f \"bv*[height=480]+ba/b[height=480]\""
+    )
+
+    OPTIONS=()
+    if [[ "$NAME" == "SoundCloud" ]]; then
+        OPTIONS=("${OPTS_AUDIO[@]}")
+    else
+        OPTIONS=("${OPTS_VIDEO[@]}" "${OPTS_AUDIO[@]}")
+    fi
+
+    FZF_INPUT=""
+    for opt in "${OPTIONS[@]}"; do LABEL="${opt%% :: *}"; FZF_INPUT+="$LABEL\n"; done
+
+    SELECTED_LABEL=$(echo -e "$FZF_INPUT" | fzf --header="Select Format for ${#URLS_TO_DOWNLOAD[@]} item(s) - ESC to Back")
+
+    if [ -z "$SELECTED_LABEL" ]; then
+        if [[ "$MODE" == "direct" ]]; then exit 0; fi 
+        continue 
+    fi
+
+    # --- D. Execution ---
+    FLAGS=""
+    for opt in "${OPTIONS[@]}"; do
+      if [[ "$opt" == "$SELECTED_LABEL"* ]]; then FLAGS="${opt#* :: }"; break; fi
+    done
+
+    echo ""
+    echo "--- Saving to: $OUTPUT_DIR ---"
+    echo "--- Processing ${#URLS_TO_DOWNLOAD[@]} file(s) ---"
+    
+    # -P: Set path
+    # -o: Set filename template (Title [ID].ext)
+    # --ignore-errors: Keep going if one fails
+    
+    # shellcheck disable=SC2086
+    yt-dlp $FLAGS \
+      -P "$OUTPUT_DIR" \
+      -o "%(title)s [%(id)s].%(ext)s" \
+      --ignore-errors \
+      "${URLS_TO_DOWNLOAD[@]}"
+    
+    echo ""
+    echo "Download Complete."
+    break
+done
