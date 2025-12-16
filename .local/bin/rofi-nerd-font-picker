@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# --- Configuration ---
+CACHE_DIR="$HOME/.cache/nerd-font-picker"
+CACHE_FILE="$CACHE_DIR/icons_v7_plus_emoji.txt"
+TEMP_RAW="$CACHE_DIR/raw_temp.css"
+TEMP_EMOJI="$CACHE_DIR/emoji_temp.txt"
+CSS_URL="https://raw.githubusercontent.com/ryanoasis/nerd-fonts/v3.2.1/css/nerd-fonts-generated.css"
+EMOJI_URL="https://unicode.org/Public/emoji/15.1/emoji-test.txt"
+
+# --- Dependencies ---
+if ! command -v rofi &> /dev/null; then echo "Error: rofi is not installed."; exit 1; fi
+
+# Detect Clipboard
+if command -v wl-copy &> /dev/null; then
+  CLIP_CMD="wl-copy"
+elif command -v xclip &> /dev/null; then
+  CLIP_CMD="xclip -selection clipboard"
+else
+  CLIP_CMD="echo"
+fi
+
+# --- Main Logic ---
+
+generate_cache() {
+  mkdir -p "$CACHE_DIR"
+  echo "Downloading and parsing..." | rofi -dmenu -p "System" -lines 1 -width 30 &
+  ROFI_PID=$!
+
+  # 1. Download Nerd Fonts
+  if curl -sL -f "$CSS_URL" -o "$TEMP_RAW"; then
+    
+    # 2. Parse Nerd Fonts
+    # Strategy: Flatten file -> Add newlines at '}' -> Extract
+    cat "$TEMP_RAW" | \
+    tr -d '\n' | sed 's/}/}\n/g' | \
+    sed -nE 's/.*\.nf-([^:]+):before.*content:\s*"\\([a-fA-F0-9]+)";.*/\2 nf-\1/p' | \
+    while read -r hex name; do
+      if [[ -n "$hex" && -n "$name" ]]; then
+        # Use transparent foreground for hidden search text
+        printf "\u$hex <span size='1' foreground='#00000000'>$name</span>\n" 2>/dev/null
+      fi
+    done > "$CACHE_FILE"
+    
+  else
+    echo "Error: NF Download failed." >&2
+  fi
+
+  # 3. Download and Parse Emojis (Append to CACHE_FILE)
+  # We use the official unicode test file. Format: ... # [Emoji] E[ver] [Description]
+  if curl -sL -f "$EMOJI_URL" -o "$TEMP_EMOJI"; then
+    cat "$TEMP_EMOJI" | \
+    grep "; fully-qualified" | \
+    sed -nE 's/^.*# ([^ ]+) E[0-9.]+ (.*)/\1 <span size="1" foreground="#00000000">emoji \2<\/span>/p' \
+    >> "$CACHE_FILE"
+  else
+    echo "Error: Emoji Download failed." >&2
+  fi
+
+  kill "$ROFI_PID" 2>/dev/null
+  rm -f "$TEMP_RAW" "$TEMP_EMOJI"
+
+  # Fallback if empty
+  if [ ! -s "$CACHE_FILE" ]; then
+    echo "  Error" > "$CACHE_FILE"
+    echo "  nf-fa-home" >> "$CACHE_FILE"
+  fi
+}
+
+# Check update
+if [ ! -f "$CACHE_FILE" ] || [ "$1" == "--update" ]; then
+  generate_cache
+fi
+
+# --- Run Rofi (Grid Mode) ---
+# FIX: Added 'Noto Color Emoji' to font list for proper rendering
+selected=$(cat "$CACHE_FILE" | rofi -dmenu -i -markup-rows \
+  -p "" \
+  -theme-str 'listview {columns: 10; lines: 12; flow: horizontal; padding: 0; font: "NotoSans Nerd Font, Noto Color Emoji 24";}' \
+  -theme-str 'element-text {horizontal-align: 0.6;}' \
+  -kb-custom-1 "Alt+u") 
+
+exit_code=$?
+
+# Handle Alt+u (Update)
+if [ $exit_code -eq 10 ]; then
+  rm -f "$CACHE_FILE"
+  $0 --update
+  exit 0
+fi
+
+# Handle Selection
+if [ -n "$selected" ]; then
+  # We only need the first character (the icon)
+  icon=$(echo "$selected" | awk '{print $1}')
+  
+  # Don't copy error messages
+  if [[ "$icon" == "" ]]; then
+    $0 --update
+    exit 1
+  fi
+
+  echo -n "$icon" | $CLIP_CMD
+  echo "Copied $icon"
+fi

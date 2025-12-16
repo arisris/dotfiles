@@ -25,10 +25,6 @@
 			"name": ".config/alacritty"
 		},
 		{
-			"path": "../i3status",
-			"name": ".config/i3status"
-		},
-		{
 			"path": "../../.local/bin",
 			"name": ".local/bin"
 		},

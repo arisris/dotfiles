@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# @file: ./scripts/i3-status.sh
+
+# --- SAFETY SETTINGS ---
+export LC_ALL=C
+exec 2> /dev/null
+
+# --- CONFIGURATION ---
+MUSIC_CMD="rofi-music-ui"
+EXIT_CMD="rofi-exit-menu"
+
+# --- STATE VARIABLES ---
+PREV_TIME=0
+PREV_CPU_TOT=0
+PREV_CPU_IDLE=0
+
+# --- UTILITY FUNCTIONS ---
+get_time() {
+  read -r val _ < /proc/uptime
+  echo "$val"
+}
+
+sanitize() {
+  local str="${1:-}"
+  echo "$str" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '[:cntrl:]'
+}
+
+get_cpu() {
+  read -r _ u n s i w irq sirq st _ < /proc/stat
+  echo "$((u+n+s+i+w+irq+sirq+st)) $((i+w))"
+}
+
+get_mem() {
+  local tot=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+  local avl=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+  echo "${tot:-0} ${avl:-0}"
+}
+
+# --- INITIALIZATION ---
+echo '{"version": 1, "click_events": true}'
+echo '['
+echo '[],'
+
+PREV_TIME=$(get_time)
+read -r PREV_CPU_TOT PREV_CPU_IDLE <<< "$(get_cpu)"
+
+# --- MAIN LOOP ---
+while true; do
+  NOW_TIME=$(get_time)
+
+  # 1. System Stats
+  read -r CPU_TOT CPU_IDLE <<< "$(get_cpu)"
+  read -r MEM_TOT MEM_AVL <<< "$(get_mem)"
+
+  read -r CPU_PCT RAM_GB TOT_GB <<< "$(awk \
+    -v nt="$NOW_TIME" -v ot="$PREV_TIME" \
+    -v ct_tot="$CPU_TOT" -v pt_tot="$PREV_CPU_TOT" \
+    -v ct_idl="$CPU_IDLE" -v pt_idl="$PREV_CPU_IDLE" \
+    -v m_tot="$MEM_TOT" -v m_avl="$MEM_AVL" \
+    'BEGIN {
+       d_tot = ct_tot - pt_tot
+       d_idl = ct_idl - pt_idl
+       cpu = 0
+       if (d_tot > 0) cpu = (1 - (d_idl / d_tot)) * 100
+       
+       used = (m_tot - m_avl) / 1048576.0
+       total = m_tot / 1048576.0
+       
+       printf "%.0f %.1f %.1f", cpu, used, total
+    }')"
+
+  SYS_STATS=$(printf "<span color='#8BE9FD'>󰍛</span> %s%%  <span color='#FFB86C'></span> %s/%sG" "$CPU_PCT" "$RAM_GB" "$TOT_GB")
+
+  PREV_TIME=$NOW_TIME
+  PREV_CPU_TOT=$CPU_TOT; PREV_CPU_IDLE=$CPU_IDLE
+
+  # 2. Music Module (FIXED)
+  # Tombol "Menu" (Select) sekarang selalu ada di awal string JSON
+  MUSIC_JSON="{\"full_text\":\"󰎆\", \"name\":\"music_select\", \"color\":\"#BD93F9\", \"separator\":false, \"separator_block_width\":8},"
+  
+  META=$(playerctl metadata -p mpv --format '{{ status }}::{{ artist }} - {{ title }}')
+  
+  if [[ -n "$META" ]]; then
+    # Jika musik jalan, tambahkan tombol Prev | Play | Next SETELAH tombol menu
+    STATUS="${META%%::*}"
+    INFO="${META#*::}"
+    SAFE_INFO=$(sanitize "$INFO")
+    [[ ${#SAFE_INFO} -gt 25 ]] && SAFE_INFO="${SAFE_INFO:0:25}..."
+    
+    ICON=""; COLOR="#FFB86C"
+    [[ "${STATUS,,}" == "playing" ]] && ICON="" && COLOR="#50FA7B"
+    
+    # Prev
+    MUSIC_JSON="${MUSIC_JSON}{\"full_text\":\"\", \"name\":\"music_prev\", \"separator\":false, \"separator_block_width\":5},"
+    # Play/Info
+    MUSIC_JSON="${MUSIC_JSON}{\"full_text\":\"$ICON $SAFE_INFO\", \"name\":\"music_play_pause\", \"separator\":false, \"separator_block_width\":5, \"color\":\"$COLOR\"},"
+    # Next
+    MUSIC_JSON="${MUSIC_JSON}{\"full_text\":\"\", \"name\":\"music_next\", \"separator\":true, \"separator_block_width\":20}"
+  else
+    # Jika tidak ada musik, tampilkan teks placeholder di sebelahnya
+    MUSIC_JSON="${MUSIC_JSON}{\"full_text\":\"No Music\", \"name\":\"music_select\", \"color\":\"#6272A4\", \"separator\":true, \"separator_block_width\":20}"
+  fi
+
+  # 3. Volume Module
+  VOL_STR=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oE '[0-9]+%' | head -1 | tr -d '%')
+  VOL_VAL=${VOL_STR:-0}
+  IS_MUTED=$(pactl get-sink-mute @DEFAULT_SINK@)
+  
+  if [[ "$IS_MUTED" == *"yes"* ]]; then
+    VOL_JSON="{\"full_text\":\"󰝟 Muted\", \"name\":\"pactl_mute\", \"separator\":true, \"separator_block_width\":20}"
+  else
+    VICON=""
+    (( VOL_VAL > 0 )) && VICON=""
+    (( VOL_VAL >= 50 )) && VICON=""
+    
+    VOL_JSON="{\"full_text\":\"\", \"name\":\"pactl_vol_down\", \"separator\":false, \"separator_block_width\":8},"
+    VOL_JSON="${VOL_JSON}{\"full_text\":\"$VICON $VOL_VAL%\", \"name\":\"volume_text\", \"separator\":false, \"separator_block_width\":8},"
+    VOL_JSON="${VOL_JSON}{\"full_text\":\"\", \"name\":\"pactl_vol_up\", \"separator\":true, \"separator_block_width\":20}"
+  fi
+
+  # 4. Date & Power
+  DATE_STR=$(date +"%a %d %b ~ %H:%M")
+  
+  # POWER MENU FIX: Markup yang lebih bersih dan nama yang pasti
+  POWER_JSON="{\"full_text\":\"  \", \"name\":\"power_menu\", \"color\":\"#FF5555\", \"separator\":false, \"separator_block_width\":0}"
+
+  # --- OUTPUT ---
+  JSON_LINE="["
+  JSON_LINE="${JSON_LINE}{\"full_text\":\"${SYS_STATS}\", \"name\":\"sys_stats\", \"markup\":\"pango\", \"separator\":true, \"separator_block_width\":20, \"min_width\": 100, \"align\": \"center\"},"
+  JSON_LINE="${JSON_LINE}${MUSIC_JSON},"
+  JSON_LINE="${JSON_LINE}${VOL_JSON},"
+  JSON_LINE="${JSON_LINE}{\"full_text\":\" ${DATE_STR}\", \"name\":\"datetime\", \"separator\":true, \"separator_block_width\":20},"
+  JSON_LINE="${JSON_LINE}${POWER_JSON}"
+  JSON_LINE="${JSON_LINE}],"
+  
+  echo "$JSON_LINE"
+
+  # --- INPUT HANDLING (FIXED) ---
+  if read -t 1 -r LINE; then
+    # Hapus koma/kurung kurawal di awal untuk parsing yang lebih bersih
+    CLEAN_LINE=$(echo "$LINE" | sed 's/^[[:space:],\[]*//; s/[[:space:],\]]*$//')
+    
+    # Regex yang lebih fleksibel untuk menangkap 'name' dan 'button' dimanapun posisinya
+    BTN=$(echo "$CLEAN_LINE" | grep -oP '"button"\s*:\s*\K[0-9]+')
+    NAME=$(echo "$CLEAN_LINE" | grep -oP '"name"\s*:\s*"\K[^"]+')
+
+    if [[ "$BTN" == "1" ]]; then
+      case "$NAME" in
+        "pactl_mute")       pactl set-sink-mute @DEFAULT_SINK@ toggle & ;;
+        "pactl_vol_down")   pactl set-sink-volume @DEFAULT_SINK@ -5% & ;;
+        "pactl_vol_up")     pactl set-sink-volume @DEFAULT_SINK@ +5% & ;;
+        "music_select")     $MUSIC_CMD & ;;
+        "music_prev")       playerctl -p mpv previous & ;;
+        "music_play_pause") playerctl -p mpv play-pause & ;;
+        "music_next")       playerctl -p mpv next & ;;
+        "power_menu")       $EXIT_CMD & ;;
+      esac
+    fi
+  fi
+done

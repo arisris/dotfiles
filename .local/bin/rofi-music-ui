@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+export LC_ALL=C
+
+# --- CONFIGURATION ---
+MUSIC_DIR="${HOME}/Music"
+SOCKET_PATH="/tmp/mpv_music_socket"
+RAW_LIST="/tmp/rofi_music_raw_list"
+DISPLAY_LIST="/tmp/rofi_music_display"
+PLAYLIST_FILE="/tmp/rofi_bash_playlist.m3u"
+
+# --- VISUALS ---
+ACTIVE_COLOR="#2ec27e"
+ACTIVE_ICON="<b>󰎆</b>"
+ADWAITA_THEME="listview { columns: 1; }"
+
+find -L "${MUSIC_DIR}" -type f \( -iname "*.mp3" -o -iname "*.flac" -o -iname "*.wav" -o -iname "*.m4a" -o -iname "*.ogg" -o -iname "*.opus" \) | sort > "$RAW_LIST"
+
+if [ ! -s "$RAW_LIST" ]; then
+    rofi -e "No music found in ${MUSIC_DIR}"
+    exit 1
+fi
+
+CURRENT_PATH=""
+RAW_URL=$(playerctl metadata xesam:url 2>/dev/null)
+if [ -n "$RAW_URL" ]; then
+    CLEAN_URL="${RAW_URL#file://}"
+    CURRENT_PATH=$(printf '%b' "${CLEAN_URL//%/\\x}")
+fi
+
+awk -v current="$CURRENT_PATH" \
+    -v active_color="$ACTIVE_COLOR" \
+    -v active_icon="$ACTIVE_ICON" \
+    -v root_dir="$MUSIC_DIR/" \
+    '{
+        filepath = $0
+        
+        # Buat display name (hapus path folder music)
+        display = filepath
+        gsub("^" root_dir, "", display)
+        
+        # Escape Pango (XML entities)
+        gsub("&", "\\&amp;", display)
+        gsub("<", "\\&lt;", display)
+        gsub(">", "\\&gt;", display)
+        
+        # Cek jika ini lagu yang sedang diputar
+        if (filepath == current) {
+            # Print row index untuk pre-selection rofi (dikirim ke fd 3)
+            print (NR-1) > "/dev/fd/3"
+            printf "<span weight=\"bold\" color=\"%s\">%s  %s</span>\n", active_color, active_icon, display
+        } else {
+            print display
+        }
+    }' "$RAW_LIST" > "$DISPLAY_LIST" 3>"/tmp/rofi_music_selected_index"
+
+SELECTED_ROW=$(cat "/tmp/rofi_music_selected_index")
+rm -f "/tmp/rofi_music_selected_index"
+
+ROFI_CMD="rofi -dmenu -i -markup-rows -theme-str '${ADWAITA_THEME}' -p '󰎆 Music' -format i"
+
+if [ -n "$SELECTED_ROW" ]; then
+    ROFI_CMD+=" -selected-row $SELECTED_ROW"
+fi
+
+CHOSEN_INDEX=$(cat "$DISPLAY_LIST" | eval "$ROFI_CMD")
+
+if [ -n "$CHOSEN_INDEX" ]; then
+    if [[ "$CHOSEN_INDEX" =~ ^[0-9]+$ ]]; then
+        
+        FILE_TO_PLAY=$(sed -n "$((CHOSEN_INDEX + 1))p" "$RAW_LIST")
+        
+        pkill -f "mpv .*--input-ipc-server=${SOCKET_PATH}"
+        cp "$RAW_LIST" "$PLAYLIST_FILE"
+
+        nohup mpv --no-video --idle \
+            --input-ipc-server="${SOCKET_PATH}" \
+            --playlist-start="${CHOSEN_INDEX}" \
+            --playlist="${PLAYLIST_FILE}" >/dev/null 2>&1 &
+        
+        SONG_TITLE="${FILE_TO_PLAY##*/}"
+        notify-send 'Playing Music' "${SONG_TITLE}" -i audio-x-generic &
+    fi
+fi
