@@ -9,7 +9,7 @@ set $inactive-bg-color   #2D2D2D
 set $text-color          #DEDDDA
 set $inactive-text-color #77767B
 set $urgent-bg-color     #ED333B
-set $focused-bg-color    #3584E4
+set $focused-bg-color    #3173c4
 
 # --- Window Appearance ---
 # Font setup
@@ -32,8 +32,8 @@ client.background       $bg-color
 gaps inner 10
 gaps outer 0
 smart_gaps on
-# floating_minimum_size 800 x 480
-# floating_maximum_size -1 x -1
+floating_minimum_size 400 x 160
+floating_maximum_size -1 x -1
 
 # Float specific window types (dialogs, popups, utility)
 for_window [window_role="^(pop-up|task_dialog)$"] floating enable, floating_border pixel 0
@@ -42,7 +42,7 @@ for_window [window_type="^(dialog|menu)$"] floating enable
 # apps
 for_window [class="Ytse"] floating enable, resize 500 700
 for_window [class="^(Lxappearance|Nm-connection-editor|Electron|Lightdm-gtk-greeter-settings|Gnome-disks|Xarchiver)$"] floating enable, resize set 800 480, move position center
-for_window [class="^(Alacritty|mpv|kitty|Pcmanfm|Virt-manager)$"] floating enable, resize set 800 480
+for_window [class="^(Alacritty|mpv|Pcmanfm|Virt-manager)$"] floating enable, resize set 800 480
 
 # Android Studio & JetBrains IDEs Configuration
 for_window [class="^jetbrains-.*" title="Welcome to Android Studio"] floating enable, resize set 800 480, move position center
@@ -90,24 +90,16 @@ bindsym $mod+Return exec "alacritty msg create-window || alacritty"
 # Kill Focused Window
 bindsym $mod+Shift+q kill
 
-# Start Rofi (Launcher) with Adwaita Theme
+# Start Rofi
 bindsym $mod+d exec --no-startup-id "rofi -show drun -show-icons -markup-rows -theme-str 'listview {lines:8;columns:2;}'"
 
-# Change Focus (Vim keys & Arrows)
-bindsym $mod+j focus left
-bindsym $mod+k focus down
-bindsym $mod+l focus up
-bindsym $mod+semicolon focus right
+# Change Focus
 bindsym $mod+Left focus left
 bindsym $mod+Down focus down
 bindsym $mod+Up focus up
 bindsym $mod+Right focus right
 
-# Move Window (Vim keys & Arrows)
-bindsym $mod+Shift+j move left
-bindsym $mod+Shift+k move down
-bindsym $mod+Shift+l move up
-bindsym $mod+Shift+semicolon move right
+# Move Window
 bindsym $mod+Shift+Left move left
 bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
@@ -132,41 +124,29 @@ bindsym $mod+space focus mode_toggle
 # Focus Container
 bindsym $mod+a focus parent
 
-# --- Workspaces ---
-set $ws1 "1"
-set $ws2 "2"
-set $ws3 "3"
-set $ws4 "4"
-set $ws5 "5"
-set $ws6 "6"
-set $ws7 "7"
-set $ws8 "8"
-set $ws9 "9"
-set $ws10 "10"
-
 # Switch Workspace
-bindsym $mod+1 workspace number $ws1
-bindsym $mod+2 workspace number $ws2
-bindsym $mod+3 workspace number $ws3
-bindsym $mod+4 workspace number $ws4
-bindsym $mod+5 workspace number $ws5
-bindsym $mod+6 workspace number $ws6
-bindsym $mod+7 workspace number $ws7
-bindsym $mod+8 workspace number $ws8
-bindsym $mod+9 workspace number $ws9
-bindsym $mod+0 workspace number $ws10
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+bindsym $mod+0 workspace number 10
 
 # Move Window to Workspace
-bindsym $mod+Shift+1 move container to workspace number $ws1
-bindsym $mod+Shift+2 move container to workspace number $ws2
-bindsym $mod+Shift+3 move container to workspace number $ws3
-bindsym $mod+Shift+4 move container to workspace number $ws4
-bindsym $mod+Shift+5 move container to workspace number $ws5
-bindsym $mod+Shift+6 move container to workspace number $ws6
-bindsym $mod+Shift+7 move container to workspace number $ws7
-bindsym $mod+Shift+8 move container to workspace number $ws8
-bindsym $mod+Shift+9 move container to workspace number $ws9
-bindsym $mod+Shift+0 move container to workspace number $ws10
+bindsym $mod+Shift+1 move container to workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9
+bindsym $mod+Shift+0 move container to workspace number 10
 
 # --- System Management ---
 bindsym $mod+Shift+c reload
@@ -207,7 +187,7 @@ bar {
         colors {
                 background #00000000
                 statusline $text-color
-                separator  #666666
+                separator  #66666600
                 focused_workspace  $focused-bg-color  $focused-bg-color  $text-color
                 active_workspace   $inactive-bg-color $inactive-bg-color $text-color
                 inactive_workspace $bg-color          $bg-color          $inactive-text-color

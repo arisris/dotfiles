@@ -13,6 +13,16 @@ i3prop() {
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 
+# User specific aliases and functions
+if [ -d ~/.bashrc.d ]; then
+    for rc in ~/.bashrc.d/*; do
+        if [ -f "$rc" ]; then
+            . "$rc"
+        fi
+    done
+fi
+unset rc
+
 # PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
 PS1='\[\e[1;34m\]\w \[\e[1;32m\]➜ \[\e[0m\]'
 

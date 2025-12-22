@@ -2,60 +2,52 @@
 	"folders": [
 		{
 			"path": ".",
-			"name": ".config/yadm"
+			"name": "~/.config/yadm"
+		},
+		{
+			"path": "../ask",
+			"name": "~/.config/ask"
 		},
 		{
 			"path": "../i3",
-			"name": ".config/i3"
+			"name": "~/.config/i3"
 		},
 		{
 			"path": "../picom",
-			"name": ".config/picom"
+			"name": "~/.config/picom"
 		},
 		{
 			"path": "../rofi",
-			"name": ".config/rofi"
+			"name": "~/.config/rofi"
 		},
 		{
 			"path": "../dunst",
-			"name": ".config/dunst"
+			"name": "~/.config/dunst"
 		},
 		{
 			"path": "../alacritty",
-			"name": ".config/alacritty"
+			"name": "~/.config/alacritty"
 		},
 		{
 			"path": "../../.local/bin",
-			"name": ".local/bin"
+			"name": "~/.local/bin"
 		},
 		{
 			"path": "../../.local/share/lua",
-			"name": ".local/share/lua"
+			"name": "~/.local/share/lua"
 		},
 		{
 			"path": "../../.local/share/applications",
-			"name": ".local/share/applications"
+			"name": "~/.local/share/applications"
+		},
+		{
+			"path": "../../.bashrc.d",
+			"name": "~/.bashrc.d"
 		}
 	],
 	"settings": {
 		"editor.wordWrap": "on",
-		"Lua.format.enable": true,
-		"Lua.diagnostics.disable": [
-			"cast-local-type",
-			"need-check-nil"
-		],
-		"Lua.workspace.library": ["/usr/share/lua/5.4"],
-		"Lua.runtime.version": "Lua 5.4",
 		"terminal.integrated.cwd": "../../",
-		"[lua]": {
-			"editor.quickSuggestions": {
-				"comments": "inline",
-				"other": "on",
-				"strings": "on"
-			},
-			"editor.semanticHighlighting.enabled": true,
-			"editor.defaultFormatter": "sumneko.lua"
-		},
 		"files.associations": {
 			"*.rasi": "scss"
 		},
@@ -63,8 +55,6 @@
 		"scss.lint.unknownProperties": "ignore"
 	},
 	"extensions": {
-		"recommendations": [
-			"sumneko.lua"
-		]
+		"recommendations": []
 	}
 }
