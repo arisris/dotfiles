@@ -5,8 +5,8 @@
 			"name": "~/.config/yadm"
 		},
 		{
-			"path": "../ask",
-			"name": "~/.config/ask"
+			"path": "../aichat",
+			"name": "~/.config/aichat"
 		},
 		{
 			"path": "../i3",
@@ -31,10 +31,6 @@
 		{
 			"path": "../../.local/bin",
 			"name": "~/.local/bin"
-		},
-		{
-			"path": "../../.local/share/lua",
-			"name": "~/.local/share/lua"
 		},
 		{
 			"path": "../../.local/share/applications",
