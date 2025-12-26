@@ -5,7 +5,6 @@ lightdm
 lightdm-gtk-greeter
 lightdm-gtk-greeter-settings
 i3-wm
-i3status
 i3lock
 xss-lock
 rofi
@@ -51,7 +50,6 @@ ttf-noto-nerd
 alacritty
 code
 fzf
-micro
 fastfetch
 ripgrep
 btop

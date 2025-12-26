@@ -1,5 +1,6 @@
 bun-bin
 brave-bin
+ox-bin
 
 # Uncomment below if using Nvidia Legacy GPU
 # nvidia-470xx-dkms
