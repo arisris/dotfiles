@@ -1,0 +1,49 @@
+{
+	"folders": [
+    {
+			"path": ".",
+      "name": "__root__"
+		},
+		{
+			"path": ".config/yadm"
+		},
+		{
+			"path": ".config/aichat"
+		},
+		{
+			"path": ".config/i3"
+		},
+    {
+			"path": ".config/picom"
+		},
+		{
+			"path": ".config/rofi"
+		},
+		{
+			"path": ".config/dunst"
+		},
+		{
+			"path": ".config/alacritty"
+		},
+		{
+			"path": ".local/bin"
+		},
+		{
+			"path": ".local/share/applications"
+		},
+		{
+			"path": ".bashrc.d"
+		}
+	],
+	"settings": {
+		"editor.wordWrap": "on",
+		"files.associations": {
+			"*.rasi": "scss"
+		},
+		"scss.validate": false,
+		"scss.lint.unknownProperties": "ignore"
+	},
+	"extensions": {
+		"recommendations": []
+	}
+}
