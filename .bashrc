@@ -24,7 +24,7 @@ fi
 unset rc
 
 # PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
-PS1='\[\e[1;34m\]\w \[\e[1;32m\]  \[\e[0m\]'
+PS1='\[\e[1;34m\]\w \[\e[1;32m\]$ \[\e[0m\]'
 
 export PATH="$HOME/.bun/bin:$PATH"
 
