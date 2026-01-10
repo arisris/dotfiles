@@ -44,6 +44,10 @@ for_window [class="Ytse"] floating enable, resize 500 700
 for_window [class="^(Lxappearance|Nm-connection-editor|Electron|Lightdm-gtk-greeter-settings|Gnome-disks|Xarchiver)$"] floating enable, resize set 800 480, move position center
 for_window [class="^(Alacritty|mpv|Pcmanfm|Virt-manager)$"] floating enable, resize set 800 480
 
+# Antigravity
+for_window [class="Antigravity" title="^(Manager|Settings)$"] floating enable, resize set 800 480, move position center
+
+
 # Android Studio & JetBrains IDEs Configuration
 for_window [class="^jetbrains-.*" title="Welcome to Android Studio"] floating enable, resize set 800 480, move position center
 for_window [class="^jetbrains-.*" window_type="^(splash|dialog)$"] floating enable
@@ -65,7 +69,7 @@ bindsym $mod+F12 exec --no-startup-id $screen_locker
 bindsym $mod+Shift+o exec --no-startup-id toggle-dpms.sh
 
 # --- wallpaper random ---
-set $wallpaper_dir /mnt/data/wallpapers
+set $wallpaper_dir /home/arisris/.local/share/backgrounds
 exec_always --no-startup-id feh --recursive --randomize --bg-fill $wallpaper_dir
 bindsym $mod+shift+w exec --no-startup-id feh --recursive --randomize --bg-fill $wallpaper_dir
 

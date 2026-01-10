@@ -1,8 +1,8 @@
 {
 	"folders": [
-    {
+		{
 			"path": ".",
-      "name": "__root__"
+			"name": "__root__"
 		},
 		{
 			"path": ".config/yadm"
@@ -13,7 +13,7 @@
 		{
 			"path": ".config/i3"
 		},
-    {
+		{
 			"path": ".config/picom"
 		},
 		{
@@ -33,6 +33,9 @@
 		},
 		{
 			"path": ".bashrc.d"
+		},
+		{
+			"path": ".config/opencode"
 		}
 	],
 	"settings": {

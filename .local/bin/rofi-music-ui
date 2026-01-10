@@ -14,7 +14,7 @@ ACTIVE_COLOR="#2ec27e"
 ACTIVE_ICON="<b>󰎆</b>"
 ADWAITA_THEME="listview { columns: 1; }"
 
-find -L "${MUSIC_DIR}" -type f \( -iname "*.mp3" -o -iname "*.flac" -o -iname "*.wav" -o -iname "*.m4a" -o -iname "*.ogg" -o -iname "*.opus" \) | sort > "$RAW_LIST"
+find -L "${MUSIC_DIR}" -type f \( -iname "*.mp3" -o -iname "*.webm" -o -iname "*.wav" -o -iname "*.m4a" -o -iname "*.ogg" -o -iname "*.opus" \) | sort > "$RAW_LIST"
 
 if [ ! -s "$RAW_LIST" ]; then
     rofi -e "No music found in ${MUSIC_DIR}"

@@ -1,0 +1,212 @@
+#!/bin/bash
+
+# ================= CONFIGURATION =================
+OUTPUT_FILENAME="project-llms.txt"
+AGENTS_FILENAME="AGENTS.md"
+
+# ================= COMPREHENSIVE IGNORE LIBRARY =================
+# These patterns are applied ON TOP of gitignore/git-ls-files.
+# They serve as a Security Layer and Token Saver.
+
+# 1. DIRECTORIES (Trash/Dependencies/Build/System)
+IGN_DIRS="\.git/|\.svn/|\.hg/|node_modules/|bower_components/|jspm_packages/|drizzle/|migrations/|\.tmp/|vendor/|\.venv/|venv/|env/|\.env/|__pycache__/|\.pytest_cache/|\.mypy_cache/|target/|dist/|build/|out/|coverage/|\.next/|\.nuxt/|\.output/|bin/|obj/|\.idea/|\.vscode/|\.vs/|\.settings/|\.gradle/|\.bundle/|\.cargo/"
+
+# 2. FILES - SECURITY & SYSTEM (Mandatory Ignore)
+# .env files are ALWAYS ignored for security, even if tracked by git.
+IGN_SYS="\.env$|\.env\..*$|\.test\..*$|\.DS_Store|Thumbs\.db|desktop\.ini|$OUTPUT_FILENAME|$AGENTS_FILENAME"
+
+# 3. FILES - LOCK FILES & LOGS (Token Savers)
+IGN_LOCKS="project-llms\.txt$|package-lock\.json$|yarn\.lock$|pnpm-lock\.yaml$|composer\.lock$|Gemfile\.lock$|Cargo\.lock$|mix\.lock$|go\.sum$|.*\.log$"
+
+# 4. FILES - BINARY & MEDIA (Unreadable by LLM)
+IGN_BIN="\.(png|jpg|jpeg|gif|webp|svg|ico|bmp|tiff)$|\.(mp4|mov|avi|mkv|webm|mp3|wav|flac|aac|ogg)$|\.(pdf|doc|docx|xls|xlsx|ppt|pptx|odt)$|\.(zip|tar|gz|rar|7z|bz2|iso)$|\.(exe|dll|so|dylib|class|jar|war|ear|pyc|pyo|lock|lockb)$|\.(sqlite|sqlite3|db|mdb|accdb)$|\.(eot|ttf|woff|woff2)$"
+
+# Combine into base security pattern
+SECURITY_IGNORE="$IGN_DIRS|$IGN_SYS|$IGN_LOCKS|$IGN_BIN"
+
+# ================= ARGUMENT PARSING =================
+
+INCLUDE_DOTFILES=false
+TARGET_DIR="."
+
+for arg in "$@"; do
+    case $arg in
+        --dotfiles)
+            INCLUDE_DOTFILES=true
+            shift
+            ;;
+        *)
+            TARGET_DIR="$arg"
+            ;;
+    esac
+done
+
+# ================= SETUP PATH =================
+
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "❌ Error: Directory '$TARGET_DIR' not found."
+    exit 1
+fi
+
+ABS_TARGET_DIR=$(cd "$TARGET_DIR" && pwd)
+OUTPUT_FILE="$ABS_TARGET_DIR/$OUTPUT_FILENAME"
+AGENTS_FILE_PATH="$ABS_TARGET_DIR/$AGENTS_FILENAME"
+
+# Switch to target directory
+cd "$TARGET_DIR" || exit
+
+# ================= ENGINE SELECTION =================
+
+IS_GIT_REPO=false
+if command -v git &> /dev/null && git rev-parse --is-inside-work-tree &> /dev/null; then
+    IS_GIT_REPO=true
+fi
+
+# ================= IGNORE PATTERN BUILDER =================
+
+echo "⚙️  Configuring filters..."
+
+# Start with Security Filter
+FINAL_IGNORE_PATTERN="$SECURITY_IGNORE"
+
+# Logic for Dotfiles (Hidden Files)
+# If --dotfiles is NOT used, we explicitly ignore paths starting with dot
+if [ "$INCLUDE_DOTFILES" = false ]; then
+    DOTFILE_REGEX="(^|/)\.[^/]+"
+    FINAL_IGNORE_PATTERN="${FINAL_IGNORE_PATTERN}|${DOTFILE_REGEX}"
+    echo "   🛡️  Dotfiles: Hidden (Default)"
+else
+    echo "   👀 Dotfiles: Included"
+fi
+
+# If NOT using Git engine (Fallback Mode), we must parse .gitignore manually
+if [ "$IS_GIT_REPO" = false ]; then
+    if [ -f ".gitignore" ]; then
+        echo "   📄 Parsing .gitignore (Manual Mode)..."
+        GIT_IGNORE_REGEX=$(grep -v '^#' .gitignore | grep -v '^\s*$' | sed 's/\./\\./g' | sed 's/\*/.*/g' | sed 's/?/./g' | sed 's|/$||' | tr '\n' '|')
+        FINAL_IGNORE_PATTERN="${FINAL_IGNORE_PATTERN}|${GIT_IGNORE_REGEX}"
+    fi
+fi
+
+# Clean trailing pipes
+FINAL_IGNORE_PATTERN=${FINAL_IGNORE_PATTERN%|}
+
+# ================= PROMPT GENERATION =================
+
+read -r -d '' AI_PROMPT << EOM
+# INSTRUCTION & CONTEXT
+You are an expert Senior Software Engineer and Architect. 
+I am providing you with the full context of a project located at: $(basename "$ABS_TARGET_DIR")
+
+YOUR TASKS:
+1. Analyze the project structure and architecture.
+2. Understand the relationships between files.
+3. Use this context to answer my future questions, write code, refactor, or debug.
+4. If I ask for changes, ensure they align with the existing coding style and patterns found here.
+
+Wait for my specific request after reading this file. For now, just confirm you have analyzed the context.
+==================================================
+EOM
+
+# ================= MAIN LOGIC =================
+
+echo "🚀 Indexing project at: $ABS_TARGET_DIR"
+
+# Write Header
+echo "$AI_PROMPT" > "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+
+# --- PART 1: INJECT AGENTS.MD ---
+if [ -f "$AGENTS_FILENAME" ]; then
+    echo "   🧠 Found $AGENTS_FILENAME, injecting priority context..."
+    echo "## PROJECT SPECIFIC INSTRUCTIONS (from $AGENTS_FILENAME)" >> "$OUTPUT_FILE"
+    echo "Please follow these specific architectural rules and guidelines strictly:" >> "$OUTPUT_FILE"
+    echo "--------------------------------------------------" >> "$OUTPUT_FILE"
+    echo '```markdown' >> "$OUTPUT_FILE"
+    cat "$AGENTS_FILENAME" >> "$OUTPUT_FILE"
+    echo '```' >> "$OUTPUT_FILE"
+    echo "--------------------------------------------------" >> "$OUTPUT_FILE"
+    echo "" >> "$OUTPUT_FILE"
+fi
+
+# --- PART 2: PROJECT STRUCTURE ---
+echo "📂 Generating Project Structure..."
+echo "## PROJECT STRUCTURE" >> "$OUTPUT_FILE"
+echo '```' >> "$OUTPUT_FILE"
+
+# Standard ignore list for tree visualization (Always Applied)
+TREE_IGNORE="node_modules|bower_components|\.git|dist|build|vendor|__pycache__|\.venv|venv|target|\.idea|\.vscode|\.next|\.nuxt|coverage|$OUTPUT_FILENAME|$AGENTS_FILENAME"
+
+if command -v tree &> /dev/null; then
+    
+    if [ "$IS_GIT_REPO" = true ]; then
+        # If git, try to respect gitignore in tree if supported
+        if tree --gitignore >/dev/null 2>&1; then
+             # FIX: Even with --gitignore, we must explicitly exclude node_modules using -I
+             # to ensure they are hidden even if not in .gitignore or if tree behaves oddly.
+             tree --gitignore -I "$TREE_IGNORE|.env*" >> "$OUTPUT_FILE"
+        else
+             tree -I "$TREE_IGNORE" >> "$OUTPUT_FILE"
+        fi
+    else
+        # Fallback tree (Non-Git)
+        if [ "$INCLUDE_DOTFILES" = true ]; then
+            tree -a -I "$TREE_IGNORE" >> "$OUTPUT_FILE"
+        else
+            tree -I "$TREE_IGNORE" >> "$OUTPUT_FILE"
+        fi
+    fi
+else
+    # Fallback find (if tree is missing)
+    # Improved: Now explicitly greps out the ignore list to mimic tree's behavior
+    find . -maxdepth 3 -not -path '*/.*' | grep -vE "$TREE_IGNORE" | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/" >> "$OUTPUT_FILE"
+fi
+
+echo '```' >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+echo "## SOURCE CODE CONTENTS" >> "$OUTPUT_FILE"
+echo "" >> "$OUTPUT_FILE"
+
+# --- PART 3: CONTENT CRAWLING (HYBRID ENGINE) ---
+echo "📝 Reading source code files..."
+
+if [ "$IS_GIT_REPO" = true ]; then
+    echo "   ✅ Engine: Git (ls-files)"
+    FILE_LIST_CMD="git ls-files --cached --others --exclude-standard"
+else
+    echo "   ⚠️ Engine: Fallback (find + manual regex)"
+    FILE_LIST_CMD="find . -type f | sed 's|^\./||'"
+fi
+
+count=0
+
+# Execute the command and loop strictly line by line
+eval "$FILE_LIST_CMD" | while IFS= read -r file; do
+
+    # --- FILTER LAYER 1: REGEX IGNORE ---
+    if echo "$file" | grep -Eq "$FINAL_IGNORE_PATTERN"; then
+        continue
+    fi
+
+    # --- FILTER LAYER 2: CONTENT CHECK ---
+    if [ -f "$file" ] && (grep -Iq . "$file" || [ ! -s "$file" ]); then
+        
+        ((count++))
+        
+        echo "--------------------------------------------------" >> "$OUTPUT_FILE"
+        echo "FILE PATH: $file" >> "$OUTPUT_FILE"
+        echo "--------------------------------------------------" >> "$OUTPUT_FILE"
+        
+        EXT="${file##*.}"
+        echo "\`\`\`$EXT" >> "$OUTPUT_FILE"
+        cat "$file" >> "$OUTPUT_FILE"
+        echo "" >> "$OUTPUT_FILE"
+        echo "\`\`\`" >> "$OUTPUT_FILE"
+        echo "" >> "$OUTPUT_FILE"
+    fi
+done
+
+echo "✅ Done! Context file created at:"
+echo "   👉 $OUTPUT_FILE"
+echo "   📊 File size: $(du -h "$OUTPUT_FILE" | cut -f1)"
+echo "   📑 Files processed: $count"
